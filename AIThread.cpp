@@ -1,6 +1,9 @@
 #include "AIThread.h"
 #include <iostream>
 #include <fstream>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
+
 void AIThread::process()
 {
 	QHostAddress ip(QHostAddress::LocalHost);
@@ -145,29 +148,45 @@ int AIThread::MakeMove( const QString& board )
 	short val = -9999;
 	int theUltimateMove = 0;
 	nodesVisited = 0;
-	short depthIncr[] = {3, 3, 2, 1, 1, 1, 1, 1, 1, 1};
-	for(int k = 0; k < 8; ++k)//TODO
+	short depthIncr[] = {3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1};
+
+	QElapsedTimer timer;
+	timer.start();
+
+	for(int k = 0; k < 10; ++k)//TODO timer based
 	{
-		for(short i = 0; i < 6; ++i)
+		
+		QFuture<short> threadWatchers[6];
+		//Create threads and fire away!
+		for(int a = 0; a < 6; ++a)
 		{
 			//Check if legal move
-			if (rootNode.boardState[i+1] != 0) //TODO
+			if (rootNode.boardState[a+1] != 0) 
 			{
-				short retVal = AlphaBetaRecursive(MoveAmbo(rootNode, i));
-				std::cout << "Eval value " << retVal << std::endl;
-				if(retVal > val)
-				{
-					val = retVal;
-					theUltimateMove = i+1;
-				}
+				Node tempNode = MoveAmbo(rootNode, a);
+				threadWatchers[a] = QtConcurrent::run(this, &AIThread::AlphaBetaRecursive, tempNode); 
 			}
 		}
 
-		//Increase depth by 3 for each iteration in IDDF
-		globalDepth += depthIncr[k]; //Testing 1 first
+		//Loop for waiting on threads and results
+		for(int a = 0; a < 6; ++a)
+		{
+			if (rootNode.boardState[a+1] != 0) 
+			{
+				short retVal = threadWatchers[a].result();
+				//std::cout << "Eval value " << retVal << " from thread "<< a << std::endl;
+				if(retVal > val)
+				{
+					val = retVal;
+					theUltimateMove = a+1;
+				}
+			}
+		}
+		
+		globalDepth += depthIncr[k]; 
 	}
 	
-	
+	std::cout << "Time elapsed to search level "<< globalDepth << ": " << timer.elapsed() << std::endl;
 	return theUltimateMove;
 }
 
@@ -222,13 +241,10 @@ short AIThread::EvalFunc( const Node& node )
 			specialScore += 12 + node.boardState[GetOppositeAmbo(house + i)] * 4;
 	}
 
-	if(node.maxiPlayer != player)
-		specialScore *= -1;
-
 	short southHouse = node.boardState[HOUSE_S];
 	short northHouse = node.boardState[HOUSE_N];
 
-	return player ? ((southHouse - northHouse) * 4 + specialScore) : ((northHouse - southHouse) * 4 + specialScore); 
+	return player ? ((southHouse - northHouse) * 4 + specialScore) : ((northHouse - southHouse) * 4 - specialScore); 
 }
 
 AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )
