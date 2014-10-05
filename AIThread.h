@@ -3,6 +3,8 @@
 #include <QtNetwork/QTcpSocket>
 #include <QtNetwork/QHostAddress>
 #include <stdint.h>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
 
 class AIThread : public QObject
 {
@@ -21,7 +23,7 @@ class AIThread : public QObject
 
 	struct Node
 	{
-		short boardState[14];
+		uint8_t boardState[14];
 		short depth;
 		short maxiPlayer;
 		short alpha;
@@ -45,6 +47,10 @@ private:
 	int			time;
 	int			globalDepth;
 	int			nodesVisited;
+	bool		exitThread;
+	QElapsedTimer timer;
+	short		playerStart;
+	short		enemyStart;
 
 	bool CheckWinner();
 	int MakeMove(const QString& board);

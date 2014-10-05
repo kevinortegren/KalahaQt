@@ -13,7 +13,7 @@ void AIThread::process()
 void AIThread::init( int port, int time )
 {
 	this->port = port;
-	this->time = time;
+	this->time = time - 1;
 
 	connect(&socket, SIGNAL(hostFound()), this, SLOT(HostFound()));
 	connect(&socket, SIGNAL(connected()), this, SLOT(ConnectionSuccess()));
@@ -35,7 +35,7 @@ void AIThread::ConnectionSuccess()
 	QByteArray cmd = socket.readAll();
 	QString str = cmd.split(' ')[1];
 	player = str.toInt();
-
+	running = true;
 	while (running)
 	{
 		//Check if game has ended. No need to change this.
@@ -77,6 +77,10 @@ void AIThread::ConnectionSuccess()
 						validMove = true;
 						std::cout << "Made move " +  std::to_string(cMove) << std::endl;
 						std::cout << "Nodes visited: " +  std::to_string(nodesVisited) << std::endl;
+					}
+					else
+					{
+						std::cout << str.toStdString().c_str() << std::endl; 
 					}
 				}
 			}
@@ -148,54 +152,112 @@ int AIThread::MakeMove( const QString& board )
 	short val = -9999;
 	int theUltimateMove = 0;
 	nodesVisited = 0;
-	short depthIncr[] = {3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1};
 
-	QElapsedTimer timer;
+	playerStart = (player == 1) ? START_S : START_N;
+	enemyStart = (player == 2) ? START_S : START_N;
+
+	std::vector<short> depthIncr;
+	depthIncr.push_back(8);
+	depthIncr.push_back(2);
+
+	short threadCount = 0;
 	timer.start();
+	exitThread = false;
+	short loopCount = 0;
 
-	for(int k = 0; k < 8; ++k)//TODO timer based
+	while(1)
 	{
-		globalDepth += depthIncr[k]; 
+		if(loopCount < 2)
+			globalDepth += depthIncr[loopCount]; 
+		else
+			globalDepth++;
+
 		QFuture<short> threadWatchers[6];
+		threadCount = 0;
 		//Create threads and fire away!
 		for(int a = 0; a < 6; ++a)
 		{
 			//Check if legal move
-			if (rootNode.boardState[a+1] != 0) 
+			if (rootNode.boardState[playerStart + a] != 0) 
 			{
 				Node childNode = MoveAmbo(rootNode, a);
 				threadWatchers[a] = QtConcurrent::run(this, &AIThread::AlphaBetaRecursive, childNode); 
+				threadCount++;
 			}
+		}
+
+		int counter = 0;
+		while (1)
+		{
+			if (counter == 1000000)
+			{
+				counter = 0;
+				if (timer.elapsed() > time)
+				{
+					exitThread = true;
+					break;
+				}
+				else
+				{
+					short threadsFinished = 0;
+					for(int a = 0; a < 6; ++a)
+					{
+						if (rootNode.boardState[playerStart + a] != 0) 
+						{
+							if(threadWatchers[a].isFinished())
+							{
+								threadsFinished++;
+							}
+						}
+					}
+					//If all threads are done, leave
+					if(threadsFinished == threadCount)
+					{
+						break;
+					}
+				}
+			}
+
+			counter++;
 		}
 
 		//Loop for waiting on threads and results
 		for(int a = 0; a < 6; ++a)
 		{
-			if (rootNode.boardState[a+1] != 0) 
+			if (rootNode.boardState[playerStart + a] != 0) 
 			{
 				short retVal = threadWatchers[a].result();
 				
-				if(retVal > val)
+				if(retVal > val && !exitThread)
 				{
-					std::cout << "Eval value: " << retVal << std::endl;
+					//std::cout << "Eval value: " << retVal << std::endl;
 					val = retVal;
 					theUltimateMove = a+1;
 				}
 			}
 		}
-		
-		
+
+		if(exitThread)
+		{
+			break;
+		}
+
+		loopCount++;
 	}
 	
-	std::cout << "Time elapsed to search level "<< globalDepth << ": " << timer.elapsed() << std::endl;
+	std::cout << "Time elapsed to search level "<< globalDepth - 1 << ": " << timer.elapsed() << std::endl;
 	return theUltimateMove;
 }
 
 short AIThread::AlphaBetaRecursive(Node parentNode)
 {
+	if(exitThread)
+		return 0;
+
 	Node childNode;
 	bool emptyAmbos = true;
 	nodesVisited++;
+
 	if(++parentNode.depth == globalDepth)
 	{
 		return EvalFunc(parentNode);
@@ -207,7 +269,7 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 		for(int i = 0; i < 6; ++i)
 		{
 			//Check if legal move
-			if (parentNode.boardState[i+1] != 0) //TOTOTOTO
+			if (parentNode.boardState[playerStart + i] != 0) 
 			{
 				emptyAmbos = false;
 				childNode = MoveAmbo(parentNode, i);
@@ -226,7 +288,7 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 		for(int i = 0; i < 6; ++i)
 		{
 			//Check if legal move
-			if (parentNode.boardState[i+1] != 0) //TOTOTOTO
+			if (parentNode.boardState[enemyStart + i] != 0) 
 			{
 				emptyAmbos = false;
 				childNode = MoveAmbo(parentNode, i);
@@ -244,21 +306,20 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 
 short AIThread::EvalFunc( const Node& node )
 {
-	short house = node.maxiPlayer ? START_S : START_N;
+	short house = (node.maxiPlayer == 1) ? START_S : START_N;
 	short specialScore = 0;
+
 	for(short i = 0; i < 6; ++i)
 	{
 		if(node.boardState[house + i] == 13)
 			specialScore += 12 + node.boardState[GetOppositeAmbo(house + i)] * 4;
 	}
-
+	
 	short southHouse = node.boardState[HOUSE_S];
 	short northHouse = node.boardState[HOUSE_N];
 
-	short resultYO = player ? ((southHouse - northHouse) * 4 + specialScore) : ((northHouse - southHouse) * 4 - specialScore); 
-	if(resultYO == 9999 || resultYO == -9999)
-		std::cout << "Eval value " << resultYO  << std::endl;
-	return resultYO;
+	short inv = (node.maxiPlayer == player) ? 1 : -1;
+	return inv * ((node.maxiPlayer == 1) ? ((southHouse - northHouse) * 4 + specialScore) : ((northHouse - southHouse) * 4 + specialScore)); 
 }
 
 AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )
@@ -266,7 +327,7 @@ AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )
 	Node newBoardState = boardState;
 
 	int curPlayer = boardState.maxiPlayer;
-	ambo = curPlayer ? START_S + ambo : START_N + ambo;
+	ambo = (curPlayer == 1) ? START_S + ambo : START_N + ambo;
 
 	//Pickup seeds
 	int seeds = newBoardState.boardState[ambo];
