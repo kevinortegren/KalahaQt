@@ -51,12 +51,13 @@ private:
 	QElapsedTimer timer;
 	short		playerStart;
 	short		enemyStart;
+	short		playerHouse;
+	short		enemyHouse;
 
 	bool CheckWinner();
 	int MakeMove(const QString& board);
 	Node MoveAmbo(const Node& boardState, int ambo);
 	int GetOppositeAmbo(int ambo);
-	void ToggleNextPlayer();
 	short AlphaBetaRecursive(Node node);
 	short EvalFunc(const Node& node);
 

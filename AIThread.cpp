@@ -149,13 +149,14 @@ int AIThread::MakeMove( const QString& board )
 
 	//Start depth
 	globalDepth = 0;
-	short val = -9999;
+	
 	int theUltimateMove = 0;
 	nodesVisited = 0;
 
 	playerStart = (player == 1) ? START_S : START_N;
 	enemyStart = (player == 2) ? START_S : START_N;
-
+	playerHouse = (player == 1) ? HOUSE_S : HOUSE_N;
+	enemyHouse = (player == 2) ? HOUSE_S : HOUSE_N;
 	std::vector<short> depthIncr;
 	depthIncr.push_back(8);
 	depthIncr.push_back(2);
@@ -221,16 +222,17 @@ int AIThread::MakeMove( const QString& board )
 			counter++;
 		}
 
+		//std::cout << "Depth " << globalDepth << std::endl;
+		short val = -9999;
 		//Loop for waiting on threads and results
 		for(int a = 0; a < 6; ++a)
 		{
 			if (rootNode.boardState[playerStart + a] != 0) 
 			{
 				short retVal = threadWatchers[a].result();
-				
+			//	std::cout << "Eval value: " << retVal << std::endl;
 				if(retVal > val && !exitThread)
 				{
-					//std::cout << "Eval value: " << retVal << std::endl;
 					val = retVal;
 					theUltimateMove = a+1;
 				}
@@ -245,27 +247,29 @@ int AIThread::MakeMove( const QString& board )
 		loopCount++;
 	}
 	
-	std::cout << "Time elapsed to search level "<< globalDepth - 1 << ": " << timer.elapsed() << std::endl;
+	std::cout << "Ended on level "<< globalDepth << " in " << timer.elapsed() << "ms"<< std::endl;
 	return theUltimateMove;
 }
 
 short AIThread::AlphaBetaRecursive(Node parentNode)
 {
 	if(exitThread)
-		return 0;
-
-	Node childNode;
-	bool emptyAmbos = true;
-	nodesVisited++;
+		return EvalFunc(parentNode);
 
 	if(++parentNode.depth == globalDepth)
 	{
 		return EvalFunc(parentNode);
 	}
 
+	Node childNode;
+	bool emptyAmbos = true;
+	//nodesVisited++;
+
 	if(parentNode.maxiPlayer == player)
 	{
-		
+		//if(parentNode.boardState[playerHouse] > 36)
+			//return EvalFunc(parentNode);
+
 		for(int i = 0; i < 6; ++i)
 		{
 			//Check if legal move
@@ -285,6 +289,9 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 	}
 	else
 	{
+		//if(parentNode.boardState[enemyHouse] > 36)
+			//return EvalFunc(parentNode);
+
 		for(int i = 0; i < 6; ++i)
 		{
 			//Check if legal move
@@ -306,20 +313,25 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 
 short AIThread::EvalFunc( const Node& node )
 {
-	short house = (node.maxiPlayer == 1) ? START_S : START_N;
+	
+	//short start = (node.maxiPlayer == 1) ? START_S : START_N;
 	short specialScore = 0;
 
 	for(short i = 0; i < 6; ++i)
 	{
-		if(node.boardState[house + i] == 13)
-			specialScore += 12 + node.boardState[GetOppositeAmbo(house + i)] * 4;
+		if(node.boardState[playerStart + i] == 13)
+			specialScore += 3 + node.boardState[GetOppositeAmbo(playerStart + i)];
+		else if(node.boardState[playerStart + i] == 0)
+			specialScore ++;
+		if(node.boardState[playerStart + i] == 6 - i)
+			specialScore ++;
 	}
 	
-	short southHouse = node.boardState[HOUSE_S];
-	short northHouse = node.boardState[HOUSE_N];
+	short playerHouseCount = node.boardState[playerHouse];
+	short enemyHouseCount = node.boardState[enemyHouse];
 
-	short inv = (node.maxiPlayer == player) ? 1 : -1;
-	return inv * ((node.maxiPlayer == 1) ? ((southHouse - northHouse) * 4 + specialScore) : ((northHouse - southHouse) * 4 + specialScore)); 
+	//short inv = (node.maxiPlayer == player) ? 1 : -1;
+	return (playerHouse - enemyHouseCount) + specialScore; 
 }
 
 AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )
@@ -332,85 +344,90 @@ AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )
 	//Pickup seeds
 	int seeds = newBoardState.boardState[ambo];
 	newBoardState.boardState[ambo] = 0;
-	bool lastIsHouse = false;
 	//Get curr player 
 	
-
-	//Sow seeds
-	while (seeds > 0)
+	if(curPlayer == 1)
 	{
-		//Take a step
-		ambo++;
-		if (ambo >= 14) 
-			ambo = 0;
+		//Sow seeds
+		while (seeds > 0)
+		{
+			//Take a step
+			ambo++;
+			if (ambo >= 14) 
+				ambo = 0;
 
-		if ( (curPlayer == 1 && ambo == HOUSE_N) || (curPlayer == 2 && ambo == HOUSE_S) )
-		{
-			//Don't sow in opponents house
-		}
-		else
-		{
-			//Sow a seed
-			newBoardState.boardState[ambo]++;
-			seeds--;
+			if ((ambo != HOUSE_N))
+			{
+				//Sow a seed
+				newBoardState.boardState[ambo]++;
+				seeds--;
+			}
 		}
 
 		//Check special cases for last seed
-		if (seeds == 0)
+
+		//Check for extra move
+		if (ambo == HOUSE_S) 
+			newBoardState.maxiPlayer = 1;
+		else
+			newBoardState.maxiPlayer = 2;
+
+		//Check capture
+		if (newBoardState.boardState[ambo] == 1)
 		{
-			//Check for extra move
-			if (curPlayer == 1 && ambo == HOUSE_S) 
-				lastIsHouse = true;
-			if (curPlayer == 2 && ambo == HOUSE_N) 
-				lastIsHouse = true;
-
-			//Check capture
-			bool capture = false;
-			if (newBoardState.boardState[ambo] == 1)
-			{
-				if (curPlayer == 1)
-				{
-					if (ambo >= START_S && ambo <= END_S) 
-						capture = true;
-				}
-				if (curPlayer == 2)
-				{
-					if (ambo >= START_N && ambo <= END_N) 
-						capture = true;
-				}
-			}
-
-			//Possible capture of opponent's seeds
-			if (capture)
+			if (ambo >= START_S && ambo <= END_S) //Capture if true
 			{
 				int oi = GetOppositeAmbo(ambo);
 				if (newBoardState.boardState[oi] > 0)
 				{
-					if (curPlayer == 1)
-					{
-						newBoardState.boardState[HOUSE_S] += newBoardState.boardState[ambo] + newBoardState.boardState[oi];
-					}
-					else if (curPlayer == 2)
-					{ 
-						newBoardState.boardState[HOUSE_N] += newBoardState.boardState[ambo] + newBoardState.boardState[oi];
-					}
-
+					newBoardState.boardState[HOUSE_S] += newBoardState.boardState[ambo] + newBoardState.boardState[oi];
+					
 					newBoardState.boardState[ambo] = 0;
 					newBoardState.boardState[oi] = 0;
 				}
 			}
 		}
 	}
-
-	if (!lastIsHouse)
+	else
 	{
-		//Toggle player 
-		if (curPlayer == 1) 
-			newBoardState.maxiPlayer = 2;
-		else 
-			newBoardState.maxiPlayer = 1;
-	}
+		//Sow seeds
+		while (seeds > 0)
+		{
+			//Take a step
+			ambo++;
+			if (ambo >= 14) 
+				ambo = 0;
 
+			if (ambo != HOUSE_S)
+			{
+				newBoardState.boardState[ambo]++;
+				seeds--;
+			}
+		}
+
+		//Check special cases for last seed
+		if (ambo == HOUSE_N) 
+			newBoardState.maxiPlayer = 2;
+		else
+			newBoardState.maxiPlayer = 1;
+
+		//Check capture
+		if (newBoardState.boardState[ambo] == 1)
+		{
+			if (ambo >= START_N && ambo <= END_N) 
+			{
+				int oi = GetOppositeAmbo(ambo);
+				if (newBoardState.boardState[oi] > 0)
+				{
+					newBoardState.boardState[HOUSE_N] += newBoardState.boardState[ambo] + newBoardState.boardState[oi];
+					
+					newBoardState.boardState[ambo] = 0;
+					newBoardState.boardState[oi] = 0;
+				}
+			}
+			
+		}
+	}
 	//Call to update game state in
 	//case any player won.
 	seeds = 0;
@@ -475,11 +492,4 @@ int AIThread::GetOppositeAmbo( int ambo )
 	return -1;
 }
 
-void AIThread::ToggleNextPlayer()
-{
-	if (player == 1) 
-		player = 2;
-	else 
-		player = 1;
-}
 
