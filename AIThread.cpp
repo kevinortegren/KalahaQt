@@ -157,6 +157,9 @@ int AIThread::MakeMove( const QString& board )
 	enemyStart = (player == 2) ? START_S : START_N;
 	playerHouse = (player == 1) ? HOUSE_S : HOUSE_N;
 	enemyHouse = (player == 2) ? HOUSE_S : HOUSE_N;
+	playerEnd = (player == 1) ? END_S : END_N;
+	enemyEnd = (player == 2) ? END_S : END_N;
+
 	std::vector<short> depthIncr;
 	depthIncr.push_back(8);
 	depthIncr.push_back(2);
@@ -230,7 +233,7 @@ int AIThread::MakeMove( const QString& board )
 			if (rootNode.boardState[playerStart + a] != 0) 
 			{
 				short retVal = threadWatchers[a].result();
-			//	std::cout << "Eval value: " << retVal << std::endl;
+				//std::cout << "Eval value: " << retVal << std::endl;
 				if(retVal > val && !exitThread)
 				{
 					val = retVal;
@@ -263,12 +266,15 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 
 	Node childNode;
 	bool emptyAmbos = true;
-	//nodesVisited++;
+	nodesVisited++;
 
 	if(parentNode.maxiPlayer == player)
 	{
 		//if(parentNode.boardState[playerHouse] > 36)
-			//return EvalFunc(parentNode);
+		//{
+		//	std::cout << "Maxi found winning node" << std::endl;
+		//	return EvalFunc(parentNode) + 50;
+		//}
 
 		for(int i = 0; i < 6; ++i)
 		{
@@ -283,15 +289,15 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 			}
 		}
 		if(emptyAmbos)
-			return EvalFunc(parentNode);
+		{
+			//std::cout << "Maxi empty amboes" << std::endl;
+			return parentNode.boardState[playerHouse] > 36 ? 400 : -400;
+		}
 		else
 			return childNode.alpha;
 	}
 	else
 	{
-		//if(parentNode.boardState[enemyHouse] > 36)
-			//return EvalFunc(parentNode);
-
 		for(int i = 0; i < 6; ++i)
 		{
 			//Check if legal move
@@ -305,7 +311,10 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 			}
 		}
 		if(emptyAmbos)
-			return EvalFunc(parentNode);
+		{
+			//std::cout << "Mini empty amboes" << std::endl;
+			return parentNode.boardState[playerHouse] > 36 ? 400 : -400;
+		}
 		else
 			return childNode.beta;
 	}
@@ -313,25 +322,22 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 
 short AIThread::EvalFunc( const Node& node )
 {
-	
-	//short start = (node.maxiPlayer == 1) ? START_S : START_N;
 	short specialScore = 0;
 
 	for(short i = 0; i < 6; ++i)
 	{
 		if(node.boardState[playerStart + i] == 13)
 			specialScore += 3 + node.boardState[GetOppositeAmbo(playerStart + i)];
-		else if(node.boardState[playerStart + i] == 0)
+		if(node.boardState[playerStart + i] == 0)
 			specialScore ++;
 		if(node.boardState[playerStart + i] == 6 - i)
 			specialScore ++;
+		//specialScore += node.boardState[playerStart + i];
 	}
 	
 	short playerHouseCount = node.boardState[playerHouse];
 	short enemyHouseCount = node.boardState[enemyHouse];
-
-	//short inv = (node.maxiPlayer == player) ? 1 : -1;
-	return (playerHouse - enemyHouseCount) + specialScore; 
+	return (playerHouseCount - enemyHouseCount) + specialScore; 
 }
 
 AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )

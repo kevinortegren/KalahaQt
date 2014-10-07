@@ -53,6 +53,8 @@ private:
 	short		enemyStart;
 	short		playerHouse;
 	short		enemyHouse;
+	short		playerEnd;
+	short		enemyEnd;
 
 	bool CheckWinner();
 	int MakeMove(const QString& board);
