@@ -58,16 +58,8 @@ void AIThread::ConnectionSuccess()
 				bool validMove = false;
 				while (!validMove)
 				{
-					//long startT = System.currentTimeMillis();
-					//This is the call to the function for making a move.
-					//You only need to change the contents in the getMove()
-					//function.
-					//GameState currentBoard = new GameState(currentBoardStr);
 					int cMove = MakeMove(curBoard);
 
-					//Timer stuff
-					//long tot = System.currentTimeMillis() - startT;
-					//double e = (double)tot / (double)1000;
 					QString moveStr = "MOVE " + QString::number(cMove) + " " + QString::number(player) + "\n";
 					socket.write(moveStr.toStdString().c_str());
 					while(!socket.waitForReadyRead()){}
@@ -142,8 +134,6 @@ int AIThread::MakeMove( const QString& board )
 	{
 		rootNode.boardState[i] = boardState[i].toInt();
 	}
-	rootNode.alpha = -9999;
-	rootNode.beta = 9999;
 	rootNode.maxiPlayer = player;
 	rootNode.depth = 0;
 
@@ -185,7 +175,7 @@ int AIThread::MakeMove( const QString& board )
 			if (rootNode.boardState[playerStart + a] != 0) 
 			{
 				Node childNode = MoveAmbo(rootNode, a);
-				threadWatchers[a] = QtConcurrent::run(this, &AIThread::AlphaBetaRecursive, childNode); 
+				threadWatchers[a] = QtConcurrent::run(this, &AIThread::AlphaBetaRecursive, childNode, -9999, 9999); 
 				threadCount++;
 			}
 		}
@@ -254,24 +244,17 @@ int AIThread::MakeMove( const QString& board )
 	return theUltimateMove;
 }
 
-short AIThread::AlphaBetaRecursive(Node parentNode)
+short AIThread::AlphaBetaRecursive(Node parentNode, short alpha, short beta)
 {
 	if(exitThread)
 		return EvalFunc(parentNode);
 
 	if(parentNode.boardState[playerHouse] > 36)
-	{
-		//std::cout << "Maxi found winning node" << std::endl;
-		return 100;
-	}
+		return EvalFunc(parentNode) + 100;
 	else if (parentNode.boardState[enemyHouse] > 36)
-	{
-		return -100;
-	}
+		return EvalFunc(parentNode) - 100;
 	else if (parentNode.boardState[enemyHouse] == 36 && parentNode.boardState[playerHouse] == 36)
-	{
-		return -100;
-	}
+		return  EvalFunc(parentNode) - 90;
 
 	if(++parentNode.depth == globalDepth)
 	{
@@ -289,13 +272,13 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 			if (parentNode.boardState[playerStart + i] != 0) 
 			{
 				childNode = MoveAmbo(parentNode, i);
-				childNode.alpha = std::max(childNode.alpha, AlphaBetaRecursive(childNode));
-				if(parentNode.beta <= childNode.alpha)
+				alpha = std::max(alpha, AlphaBetaRecursive(childNode, alpha, beta));
+				if(beta <= alpha)
 					break;
 			}
 		}
 
-		return childNode.alpha;
+		return alpha;
 	}
 	else
 	{
@@ -305,19 +288,19 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 			if (parentNode.boardState[enemyStart + i] != 0) 
 			{
 				childNode = MoveAmbo(parentNode, i);
-				childNode.beta = std::min(childNode.beta, AlphaBetaRecursive(childNode));
-				if(childNode.beta <= parentNode.alpha)
+				beta = std::min(beta, AlphaBetaRecursive(childNode, alpha, beta));
+				if(beta <= alpha)
 					break;
 			}
 		}
-		return childNode.beta;
+		return beta;
 	}
 }
 
 short AIThread::EvalFunc( const Node& node )
 {
 	short specialScore = 0;
-/*
+
 	for(short i = 0; i < 6; ++i)
 	{
 		if(node.boardState[playerStart + i] == 13)
@@ -328,7 +311,7 @@ short AIThread::EvalFunc( const Node& node )
 			specialScore ++;
 		//specialScore += node.boardState[playerStart + i];
 	}
-	*/
+	
 	
 
 	short playerHouseCount = node.boardState[playerHouse];

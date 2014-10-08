@@ -26,8 +26,6 @@ class AIThread : public QObject
 		uint8_t boardState[14];
 		short depth;
 		short maxiPlayer;
-		short alpha;
-		short beta;
 	};
 
 public slots:
@@ -60,7 +58,7 @@ private:
 	int MakeMove(const QString& board);
 	Node MoveAmbo(const Node& boardState, int ambo);
 	int GetOppositeAmbo(int ambo);
-	short AlphaBetaRecursive(Node node);
+	short AlphaBetaRecursive(Node node, short alpha, short beta);
 	short EvalFunc(const Node& node);
 
 private slots:
