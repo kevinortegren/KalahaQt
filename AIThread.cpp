@@ -225,7 +225,7 @@ int AIThread::MakeMove( const QString& board )
 			counter++;
 		}
 
-		//std::cout << "Depth " << globalDepth << std::endl;
+		std::cout << "Depth " << globalDepth << std::endl;
 		short val = -9999;
 		//Loop for waiting on threads and results
 		for(int a = 0; a < 6; ++a)
@@ -233,7 +233,7 @@ int AIThread::MakeMove( const QString& board )
 			if (rootNode.boardState[playerStart + a] != 0) 
 			{
 				short retVal = threadWatchers[a].result();
-				//std::cout << "Eval value: " << retVal << std::endl;
+				std::cout << "Eval value: " << retVal << std::endl;
 				if(retVal > val && !exitThread)
 				{
 					val = retVal;
@@ -259,42 +259,43 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 	if(exitThread)
 		return EvalFunc(parentNode);
 
+	if(parentNode.boardState[playerHouse] > 36)
+	{
+		//std::cout << "Maxi found winning node" << std::endl;
+		return 100;
+	}
+	else if (parentNode.boardState[enemyHouse] > 36)
+	{
+		return -100;
+	}
+	else if (parentNode.boardState[enemyHouse] == 36 && parentNode.boardState[playerHouse] == 36)
+	{
+		return -100;
+	}
+
 	if(++parentNode.depth == globalDepth)
 	{
 		return EvalFunc(parentNode);
 	}
 
 	Node childNode;
-	bool emptyAmbos = true;
 	nodesVisited++;
 
 	if(parentNode.maxiPlayer == player)
 	{
-		//if(parentNode.boardState[playerHouse] > 36)
-		//{
-		//	std::cout << "Maxi found winning node" << std::endl;
-		//	return EvalFunc(parentNode) + 50;
-		//}
-
 		for(int i = 0; i < 6; ++i)
 		{
 			//Check if legal move
 			if (parentNode.boardState[playerStart + i] != 0) 
 			{
-				emptyAmbos = false;
 				childNode = MoveAmbo(parentNode, i);
 				childNode.alpha = std::max(childNode.alpha, AlphaBetaRecursive(childNode));
 				if(parentNode.beta <= childNode.alpha)
 					break;
 			}
 		}
-		if(emptyAmbos)
-		{
-			//std::cout << "Maxi empty amboes" << std::endl;
-			return parentNode.boardState[playerHouse] > 36 ? 400 : -400;
-		}
-		else
-			return childNode.alpha;
+
+		return childNode.alpha;
 	}
 	else
 	{
@@ -303,27 +304,20 @@ short AIThread::AlphaBetaRecursive(Node parentNode)
 			//Check if legal move
 			if (parentNode.boardState[enemyStart + i] != 0) 
 			{
-				emptyAmbos = false;
 				childNode = MoveAmbo(parentNode, i);
 				childNode.beta = std::min(childNode.beta, AlphaBetaRecursive(childNode));
 				if(childNode.beta <= parentNode.alpha)
 					break;
 			}
 		}
-		if(emptyAmbos)
-		{
-			//std::cout << "Mini empty amboes" << std::endl;
-			return parentNode.boardState[playerHouse] > 36 ? 400 : -400;
-		}
-		else
-			return childNode.beta;
+		return childNode.beta;
 	}
 }
 
 short AIThread::EvalFunc( const Node& node )
 {
 	short specialScore = 0;
-
+/*
 	for(short i = 0; i < 6; ++i)
 	{
 		if(node.boardState[playerStart + i] == 13)
@@ -334,7 +328,9 @@ short AIThread::EvalFunc( const Node& node )
 			specialScore ++;
 		//specialScore += node.boardState[playerStart + i];
 	}
+	*/
 	
+
 	short playerHouseCount = node.boardState[playerHouse];
 	short enemyHouseCount = node.boardState[enemyHouse];
 	return (playerHouseCount - enemyHouseCount) + specialScore; 
