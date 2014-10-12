@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{420C2106-F48F-9E49-A8AF-79E35B1C50E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\GeneratedFiles">
+      <UniqueIdentifier>{B435EEEE-B837-9C48-92C4-EA60BC509765}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\UIFiles">
+      <UniqueIdentifier>{B25CB4B4-7C63-6943-A4F3-C081830DF33A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\UIFiles\ConnectionDialog.ui">
+      <Filter>src\UIFiles</Filter>
+    </None>
+    <None Include="..\src\UIFiles\Kalahaqt.ui">
+      <Filter>src\UIFiles</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\AIThread.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Kalahaqt.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GeneratedFiles\ui_ConnectionDialog.h">
+      <Filter>src\GeneratedFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GeneratedFiles\ui_Kalahaqt.h">
+      <Filter>src\GeneratedFiles</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\AIThread.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kalahaqt.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GeneratedFiles\moc_AIThread.cpp">
+      <Filter>src\GeneratedFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GeneratedFiles\moc_Kalahaqt.cpp">
+      <Filter>src\GeneratedFiles</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

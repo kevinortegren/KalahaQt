@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FA9DD21B-F923-884B-865F-E4664167F416}</ProjectGuid>
+    <RootNamespace>JoKeBotKalaha</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\bin\</OutDir>
+    <IntDir>obj\x32\Debug\</IntDir>
+    <TargetName>JoKeBotKalaha_d</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\bin\</OutDir>
+    <IntDir>obj\x32\Release\</IntDir>
+    <TargetName>JoKeBotKalaha</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\include\QtConcurrent;..\include\QtCore;..\include\QtGui;..\include\QtNetwork;..\include\QtWidgets;..\include\QtCore\5.2.1;..\include\QtCore\5.2.1\QtCore;..\include\QtCore\5.2.1\QtCore\private;..\include\QtGui\5.2.1;..\include\QtGui\5.2.1\QtGui;..\include\QtGui\5.2.1\QtGui\private;..\include\QtGui\5.2.1\QtGui\qpa;..\include\QtNetwork\5.2.1;..\include\QtNetwork\5.2.1\QtNetwork;..\include\QtNetwork\5.2.1\QtNetwork\private;..\include\QtWidgets\5.2.1;..\include\QtWidgets\5.2.1\QtWidgets;..\include\QtWidgets\5.2.1\QtWidgets\private;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions></PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ProgramDataBaseFileName>$(OutDir)JoKeBotKalaha_d.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions></PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\include\QtConcurrent;..\include\QtCore;..\include\QtGui;..\include\QtNetwork;..\include\QtWidgets;..\include\QtCore\5.2.1;..\include\QtCore\5.2.1\QtCore;..\include\QtCore\5.2.1\QtCore\private;..\include\QtGui\5.2.1;..\include\QtGui\5.2.1\QtGui;..\include\QtGui\5.2.1\QtGui\private;..\include\QtGui\5.2.1\QtGui\qpa;..\include\QtNetwork\5.2.1;..\include\QtNetwork\5.2.1\QtNetwork;..\include\QtNetwork\5.2.1\QtNetwork\private;..\include\QtWidgets\5.2.1;..\include\QtWidgets\5.2.1\QtWidgets;..\include\QtWidgets\5.2.1\QtWidgets\private;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>..\lib\Qt5Core.lib;..\lib\Qt5Gui.lib;..\lib\Qt5Network.lib;..\lib\Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)JoKeBotKalaha_d.exe</OutputFile>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>..\include\QtConcurrent;..\include\QtCore;..\include\QtGui;..\include\QtNetwork;..\include\QtWidgets;..\include\QtCore\5.2.1;..\include\QtCore\5.2.1\QtCore;..\include\QtCore\5.2.1\QtCore\private;..\include\QtGui\5.2.1;..\include\QtGui\5.2.1\QtGui;..\include\QtGui\5.2.1\QtGui\private;..\include\QtGui\5.2.1\QtGui\qpa;..\include\QtNetwork\5.2.1;..\include\QtNetwork\5.2.1\QtNetwork;..\include\QtNetwork\5.2.1\QtNetwork\private;..\include\QtWidgets\5.2.1;..\include\QtWidgets\5.2.1\QtWidgets;..\include\QtWidgets\5.2.1\QtWidgets\private;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions></PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions></PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\include\QtConcurrent;..\include\QtCore;..\include\QtGui;..\include\QtNetwork;..\include\QtWidgets;..\include\QtCore\5.2.1;..\include\QtCore\5.2.1\QtCore;..\include\QtCore\5.2.1\QtCore\private;..\include\QtGui\5.2.1;..\include\QtGui\5.2.1\QtGui;..\include\QtGui\5.2.1\QtGui\private;..\include\QtGui\5.2.1\QtGui\qpa;..\include\QtNetwork\5.2.1;..\include\QtNetwork\5.2.1\QtNetwork;..\include\QtNetwork\5.2.1\QtNetwork\private;..\include\QtWidgets\5.2.1;..\include\QtWidgets\5.2.1\QtWidgets;..\include\QtWidgets\5.2.1\QtWidgets\private;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>..\lib\Qt5Core.lib;..\lib\Qt5Gui.lib;..\lib\Qt5Network.lib;..\lib\Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)JoKeBotKalaha.exe</OutputFile>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\AIThread.h" />
+    <ClInclude Include="..\src\Kalahaqt.h" />
+    <ClInclude Include="..\src\GeneratedFiles\ui_ConnectionDialog.h" />
+    <ClInclude Include="..\src\GeneratedFiles\ui_Kalahaqt.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\AIThread.cpp">
+    </ClCompile>
+    <ClCompile Include="..\src\Kalahaqt.cpp">
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+    </ClCompile>
+    <ClCompile Include="..\src\GeneratedFiles\moc_AIThread.cpp">
+    </ClCompile>
+    <ClCompile Include="..\src\GeneratedFiles\moc_Kalahaqt.cpp">
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\UIFiles\ConnectionDialog.ui" />
+    <None Include="..\src\UIFiles\Kalahaqt.ui" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
