@@ -68,7 +68,7 @@ void AIThread::ConnectionSuccess()
 					{
 						validMove = true;
 						std::cout << "Made move " +  std::to_string(cMove) << std::endl;
-						std::cout << "Nodes visited: " +  std::to_string(nodesVisited) << std::endl;
+						//std::cout << "Nodes visited: " +  std::to_string(nodesVisited) << std::endl;
 					}
 					else
 					{
@@ -151,7 +151,7 @@ int AIThread::MakeMove( const QString& board )
 	enemyEnd = (player == 2) ? END_S : END_N;
 
 	std::vector<short> depthIncr;
-	depthIncr.push_back(8);
+	depthIncr.push_back(10);
 	depthIncr.push_back(2);
 
 	short threadCount = 0;
@@ -159,40 +159,52 @@ int AIThread::MakeMove( const QString& board )
 	exitThread = false;
 	short loopCount = 0;
 
+	std::cout << "Thinking..."<< std::endl;
+
+	//Start the main loop!
 	while(1)
 	{
+		//Increase loop by a custom amount for two steps, else increase by one
 		if(loopCount < 2)
 			globalDepth += depthIncr[loopCount]; 
 		else
 			globalDepth++;
 
+		//Create 6 handles to threads
 		QFuture<short> threadWatchers[6];
 		threadCount = 0;
+
 		//Create threads and fire away!
 		for(int a = 0; a < 6; ++a)
 		{
 			//Check if legal move
 			if (rootNode.boardState[playerStart + a] != 0) 
 			{
-				Node childNode = MoveAmbo(rootNode, a);
-				threadWatchers[a] = QtConcurrent::run(this, &AIThread::AlphaBetaRecursive, childNode, -9999, 9999); 
-				threadCount++;
+				Node childNode = MoveAmbo(rootNode, a); //Create child node for each start move 
+				threadWatchers[a] = QtConcurrent::run(this, &AIThread::AlphaBetaRecursive, childNode, -9999, 9999); //This part is asynchronous and will continue directly
+				threadCount++; //Count threads to later know if all threads are done
 			}
 		}
 
+		//Timer / wait for threads to finish part
+		//Loop here until threads are done or time is out!
 		int counter = 0;
 		while (1)
 		{
+			//Do some arbitrary work to keep the CPU busy instead of running the expensive timer.elapsed() every iteration
 			if (counter == 1000000)
 			{
 				counter = 0;
+				//Check time, in milliseconds. The time entered at the begining of the program i reduced by 1ms to allow the program to aactually finish all tasks in time
 				if (timer.elapsed() > time)
 				{
+					//Set exit thread flag, which is read by all the threads. 
 					exitThread = true;
 					break;
 				}
 				else
 				{
+					//If there's still time we check how many threads are finished
 					short threadsFinished = 0;
 					for(int a = 0; a < 6; ++a)
 					{
@@ -204,7 +216,7 @@ int AIThread::MakeMove( const QString& board )
 							}
 						}
 					}
-					//If all threads are done, leave
+					//If all threads are done, leave loop
 					if(threadsFinished == threadCount)
 					{
 						break;
@@ -215,23 +227,24 @@ int AIThread::MakeMove( const QString& board )
 			counter++;
 		}
 
-		std::cout << "Depth " << globalDepth << std::endl;
 		short val = -9999;
-		//Loop for waiting on threads and results
+		//Loop for retrieving the results from the threads. All threads are done when this code is executed.
 		for(int a = 0; a < 6; ++a)
 		{
 			if (rootNode.boardState[playerStart + a] != 0) 
 			{
+				//Get evaluation result from thread.
 				short retVal = threadWatchers[a].result();
-				std::cout << "Eval value: " << retVal << std::endl;
+				//Only use return value if all threads reached tree depth. 
 				if(retVal > val && !exitThread)
 				{
 					val = retVal;
-					theUltimateMove = a+1;
+					theUltimateMove = a+1; //This is the move!
 				}
 			}
 		}
 
+		//If exitThread is true, means that the iterative deepening iteration is done and a move has been chosen! 
 		if(exitThread)
 		{
 			break;
@@ -248,7 +261,7 @@ short AIThread::AlphaBetaRecursive(Node parentNode, short alpha, short beta)
 {
 	if(exitThread)
 		return EvalFunc(parentNode);
-
+	//Check for terminal states and evaluate them
 	if(parentNode.boardState[playerHouse] > 36)
 		return EvalFunc(parentNode) + 100;
 	else if (parentNode.boardState[enemyHouse] > 36)
@@ -256,14 +269,16 @@ short AIThread::AlphaBetaRecursive(Node parentNode, short alpha, short beta)
 	else if (parentNode.boardState[enemyHouse] == 36 && parentNode.boardState[playerHouse] == 36)
 		return  EvalFunc(parentNode) - 90;
 
+	//Reached iterative deepening depth? Return evaluation
 	if(++parentNode.depth == globalDepth)
 	{
 		return EvalFunc(parentNode);
 	}
 
 	Node childNode;
-	nodesVisited++;
+	//nodesVisited++;
 
+	//Maxi-move
 	if(parentNode.maxiPlayer == player)
 	{
 		for(int i = 0; i < 6; ++i)
@@ -280,7 +295,7 @@ short AIThread::AlphaBetaRecursive(Node parentNode, short alpha, short beta)
 
 		return alpha;
 	}
-	else
+	else //Mini-move
 	{
 		for(int i = 0; i < 6; ++i)
 		{
@@ -297,10 +312,19 @@ short AIThread::AlphaBetaRecursive(Node parentNode, short alpha, short beta)
 	}
 }
 
+/************************************************************************/
+/* Eval function
+	-Check for amboes with 13 seeds in them and add 3 + number of seeds in opposite ambo
+	-Check for empty amboes, adds 1
+	-Check for amboes with number of seeds that grants the player an extra turn, adds 1
+	-Add (Player seeds - enemy seeds)
+*/
+/************************************************************************/
 short AIThread::EvalFunc( const Node& node )
 {
 	short specialScore = 0;
 
+	
 	for(short i = 0; i < 6; ++i)
 	{
 		if(node.boardState[playerStart + i] == 13)
@@ -309,14 +333,9 @@ short AIThread::EvalFunc( const Node& node )
 			specialScore ++;
 		if(node.boardState[playerStart + i] == 6 - i)
 			specialScore ++;
-		//specialScore += node.boardState[playerStart + i];
 	}
 	
-	
-
-	short playerHouseCount = node.boardState[playerHouse];
-	short enemyHouseCount = node.boardState[enemyHouse];
-	return (playerHouseCount - enemyHouseCount) + specialScore; 
+	return (node.boardState[playerHouse] - node.boardState[enemyHouse]) + specialScore; 
 }
 
 AIThread::Node AIThread::MoveAmbo(const Node& boardState, int ambo )

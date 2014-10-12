@@ -29,6 +29,8 @@ void KalahaQt::MenuConnect()
 	{
 		SetUpWorker();
 
+		system("cls");
+
 		QString portString = QString::number(cdui.spinBox_port->value());
 		//QString timeString = QString::number(cdui.spinBox_time->value);
 		std::cout << "Connecting to localhost:" << portString.toStdString() << "..." << std::endl;
@@ -38,7 +40,6 @@ void KalahaQt::MenuConnect()
 		qthread->start();
 
 		ui.pushButton_connect->setDisabled(true);
-
 	}
 }
 
